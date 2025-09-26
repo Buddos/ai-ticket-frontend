@@ -1,107 +1,101 @@
+// src/pages/CreateTicket.js
 import React, { useState } from "react";
-import { createTicket } from "../api/tickets";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import API_BASE_URL from "../config";
 
-export default function CreateTicket() {
-  const [form, setForm] = useState({
+function CreateTicket() {
+  const [formData, setFormData] = useState({
     title: "",
     description: "",
-    category: "Bug",
     priority: "Low",
-    attachment: null,
+    category: "General",
   });
-
-  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : value,
-    }));
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/");
+      return;
+    }
 
     try {
-      const formData = new FormData();
-      Object.entries(form).forEach(([key, val]) => formData.append(key, val));
-
-      await createTicket(formData);
-      alert("Ticket created successfully!");
-
-      // Reset form
-      setForm({
-        title: "",
-        description: "",
-        category: "Bug",
-        priority: "Low",
-        attachment: null,
+      await axios.post(`${API_BASE_URL}/api/tickets`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      // redirect back to dashboard
+      navigate("/dashboard");
     } catch (err) {
       console.error("Error creating ticket:", err);
-      alert("Failed to create ticket");
-    } finally {
-      setSubmitting(false);
+      setError("Failed to create ticket. Please try again.");
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">Create Ticket</h2>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          name="title"
-          placeholder="Title"
-          value={form.title}
-          onChange={handleChange}
-          required
-          className="w-full border rounded p-2"
-        />
-        <textarea
-          name="description"
-          placeholder="Description"
-          value={form.description}
-          onChange={handleChange}
-          required
-          className="w-full border rounded p-2"
-        />
-        <select
-          name="category"
-          value={form.category}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-        >
-          <option>Bug</option>
-          <option>Feature</option>
-          <option>Support</option>
-        </select>
-        <select
-          name="priority"
-          value={form.priority}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-        >
-          <option>Low</option>
-          <option>Medium</option>
-          <option>High</option>
-          <option>Urgent</option>
-        </select>
-        <input
-          type="file"
-          name="attachment"
-          onChange={handleChange}
-          className="w-full"
-        />
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50"
-        >
-          {submitting ? "Submitting..." : "Submit"}
+    <div style={{ padding: "20px" }}>
+      <h2>Create New Ticket</h2>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Title: </label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Description: </label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Priority: </label>
+          <select
+            name="priority"
+            value={formData.priority}
+            onChange={handleChange}
+          >
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+          </select>
+        </div>
+        <div>
+          <label>Category: </label>
+          <input
+            type="text"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+          />
+        </div>
+        <button type="submit" style={{ marginTop: "10px" }}>
+          Create Ticket
         </button>
       </form>
     </div>
   );
 }
+
+export default CreateTicket;
