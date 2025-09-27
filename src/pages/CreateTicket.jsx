@@ -1,8 +1,7 @@
-// src/pages/CreateTicket.js
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import API_BASE_URL from "../config";
+import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 function CreateTicket() {
   const [formData, setFormData] = useState({
@@ -11,86 +10,95 @@ function CreateTicket() {
     priority: "Low",
     category: "General",
   });
-  const [error, setError] = useState("");
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/");
-      return;
-    }
-
     try {
-      await axios.post(`${API_BASE_URL}/api/tickets`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      // redirect back to dashboard
-      navigate("/dashboard");
+      const res = await axios.post(`${API_BASE_URL}/tickets`, formData);
+      if (res.status === 201 || res.status === 200) {
+        alert("Ticket created successfully!");
+        navigate("/dashboard");
+      }
     } catch (err) {
-      console.error("Error creating ticket:", err);
-      setError("Failed to create ticket. Please try again.");
+      console.error(err);
+      alert("Failed to create ticket. Check console for details.");
     }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Create New Ticket</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
+    <div className="max-w-xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Create New Ticket</h2>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Title */}
         <div>
-          <label>Title: </label>
+          <label className="block text-gray-700 font-medium mb-1">Title</label>
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
+            placeholder="Enter ticket title"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
           />
         </div>
+
+        {/* Description */}
         <div>
-          <label>Description: </label>
+          <label className="block text-gray-700 font-medium mb-1">Description</label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
+            placeholder="Describe the issue"
+            rows={4}
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
           />
         </div>
+
+        {/* Priority */}
         <div>
-          <label>Priority: </label>
+          <label className="block text-gray-700 font-medium mb-1">Priority</label>
           <select
             name="priority"
             value={formData.priority}
             onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <option>Low</option>
             <option>Medium</option>
             <option>High</option>
           </select>
         </div>
+
+        {/* Category */}
         <div>
-          <label>Category: </label>
-          <input
-            type="text"
+          <label className="block text-gray-700 font-medium mb-1">Category</label>
+          <select
             name="category"
             value={formData.category}
             onChange={handleChange}
-          />
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            <option>General</option>
+            <option>Bug</option>
+            <option>Feature Request</option>
+          </select>
         </div>
-        <button type="submit" style={{ marginTop: "10px" }}>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+        >
           Create Ticket
         </button>
       </form>
