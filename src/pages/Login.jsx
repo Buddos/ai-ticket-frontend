@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import API_BASE_URL from "../config"; // ✅ correct for default export
+import { API_BASE_URL } from "../config"; // ✅ correct
 import { useNavigate } from "react-router-dom";
 
 function Login() {
